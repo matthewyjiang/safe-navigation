@@ -1,0 +1,11 @@
+safeopt_node:
+  ros__parameters:
+    kernel_variance: 0.5
+    kernel_length_scale: 1.0
+    use_sim_time: false
+    lipschitz: ~
+    safety_threshold: 0.0
+    beta: 2.0 # A constant or a function of the time step that scales the confidence interval of the acquisition function.
+    data_file: data/testvalues.csv
+    safeparameters_filename: data/random_points.csv
+    bounds: [0, 500, 0, 500]
