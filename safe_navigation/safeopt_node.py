@@ -9,6 +9,8 @@ import GPy
 import numpy as np
 import pandas as pd
 from safe_navigation.srv import AddDataPoint
+from safe_navigation.msg import PointArray
+from geometry_msgs.msg import Point
 from ament_index_python.packages import get_package_share_directory
 import os
 
@@ -52,12 +54,10 @@ class SafeOptNode(Node):
         self.lipschitz = self.get_parameter('lipschitz').get_parameter_value().double_value
         self.safety_threshold = self.get_parameter('safety_threshold').get_parameter_value().double_value
         self.add_data_point_srv = self.create_service(AddDataPoint, 'add_data_point', self.add_data_point_callback)
+        self.safe_set_publisher = self.create_publisher(PointArray, 'safe_set', 10)
 
         self.variance = self.get_parameter('kernel_variance').get_parameter_value().double_value
         self.lengthscale = self.get_parameter('kernel_length_scale').get_parameter_value().double_value
-        
-        # self.X = np.empty((0, 2))
-        # self.Y = np.empty((0, 1))
         
         self.kernel = GPy.kern.RBF(input_dim=2, variance=self.variance, lengthscale=self.lengthscale)
         self.model = GPy.models.GPRegression(self.X, self.Y, self.kernel)
@@ -76,6 +76,10 @@ class SafeOptNode(Node):
             
         self.opt.add_new_data_point(point, request.y)
         
+        self.get_logger().info(f'starting optimization')
+        self.opt.optimize()
+        self.publish_safe_set()
+        self.get_logger().info(f'finished optimization')
 
         # Plotting the GP
         plt.figure(figsize=(10, 5))
@@ -91,7 +95,18 @@ class SafeOptNode(Node):
         response.success = True
         return response
     
-    
+
+    def publish_safe_set(self):
+        msg = PointArray()
+        
+        for index, in_S in enumerate(self.opt.S):
+            if in_S:
+                x1, x2 = self.opt.parameter_set[index]
+                point = Point()
+                point.x = x1
+                point.y = x2
+                msg.points.append(point)
+        self.safe_set_publisher.publish(msg)
 
         
 

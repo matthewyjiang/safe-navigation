@@ -20,6 +20,7 @@ install(
 
 rosidl_generate_interfaces(${PROJECT_NAME}
     "srv/AddDataPoint.srv"
+    "msg/PointArray.msg"
     DEPENDENCIES geometry_msgs
 )
 
