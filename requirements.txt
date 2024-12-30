@@ -1,1 +1,2 @@
 safeopt
+shapely

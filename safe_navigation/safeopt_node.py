@@ -22,7 +22,7 @@ PACKAGE_SHARE_DIRECTORY = get_package_share_directory(PACKAGE_NAME)
 class SafeOptNode(Node):
     def __init__(self):
         super().__init__('safeopt_publisher_node')
-        
+        self.fig = plt.figure().gca()
         self.declare_parameter('kernel_variance', 1.0)
         self.declare_parameter('kernel_length_scale', 1.0)
         self.declare_parameter('lipschitz', None)
@@ -81,16 +81,13 @@ class SafeOptNode(Node):
         self.publish_safe_set()
         self.get_logger().info(f'finished optimization')
 
+        plt.ion()
         # Plotting the GP
-        plt.figure(figsize=(10, 5))
-        self.opt.plot(50)
-        plt.scatter(self.X[:, 0], self.X[:, 1], c=self.Y, s=50, zorder=10, edgecolors=(0, 0, 0))
-        plt.title('Gaussian Process with SafeOpt')
-        plt.xlabel('X1')
-        plt.ylabel('X2')
-        plt.colorbar(label='Y')
-        plt.show()
         
+        plt.clf()
+        self.opt.plot(50, axis=self.fig)
+        self.fig.scatter(self.X[:, 0], self.X[:, 1], c=self.Y, s=50, zorder=10, edgecolors=(0, 0, 0))
+        plt.pause(1)
         
         response.success = True
         return response
@@ -117,8 +114,8 @@ def main(args=None):
     safeopt_node = SafeOptNode()
     
     
-
     rclpy.spin(safeopt_node)
+
     rclpy.shutdown()
 
 
